@@ -1,18 +1,24 @@
 /**
  * Test suite for Node.js CLI Calculator
- * Tests all four basic arithmetic operations:
- * - Addition
- * - Subtraction
- * - Multiplication
- * - Division
+ * Tests all arithmetic operations:
+ * Basic:
+ * - Addition, Subtraction, Multiplication, Division
+ * Advanced:
+ * - Modulo, Exponentiation, Square Root
  */
 
 const { execSync } = require('child_process');
 
 describe('Calculator Operations', () => {
-  const runCalculator = (num1, operation, num2) => {
+  const runCalculator = (arg1, operation, arg2) => {
     try {
-      const result = execSync(`node src/calculator.js ${num1} ${operation} ${num2}`, {
+      let cmd;
+      if (operation === 'sqrt') {
+        cmd = `node src/calculator.js sqrt ${arg1}`;
+      } else {
+        cmd = `node src/calculator.js ${arg1} ${operation} ${arg2}`;
+      }
+      const result = execSync(cmd, {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe']
       });
@@ -154,9 +160,97 @@ describe('Calculator Operations', () => {
       }
     });
 
-    test('should reject non-numeric input', () => {
+   test('should reject non-numeric input', () => {
       const result = runCalculator('abc', '+', 5);
       expect(result).toContain('Error: Both arguments must be valid numbers');
     });
   });
-});
+
+  // Modulo tests
+  describe('Modulo Operation', () => {
+    test('should calculate modulo of two positive numbers', () => {
+      const result = runCalculator(17, '%', 5);
+      expect(result).toBe('17 % 5 = 2');
+    });
+
+    test('should calculate modulo with different values', () => {
+      const result = runCalculator(20, '%', 3);
+      expect(result).toBe('20 % 3 = 2');
+    });
+
+    test('should handle modulo with negative numbers', () => {
+      const result = runCalculator(-17, '%', 5);
+      expect(result).toContain('-17 % 5 =');
+    });
+
+    test('should reject modulo by zero', () => {
+      const result = runCalculator(10, '%', 0);
+      expect(result).toContain('Error: Cannot perform modulo with zero');
+    });
+  });
+
+  // Exponentiation tests
+  describe('Exponentiation Operation', () => {
+    test('should raise to positive power', () => {
+      const result = runCalculator(2, '^', 8);
+      expect(result).toBe('2 ^ 8 = 256');
+    });
+
+    test('should raise to power of zero', () => {
+      const result = runCalculator(5, '^', 0);
+      expect(result).toBe('5 ^ 0 = 1');
+    });
+
+    test('should raise to power of one', () => {
+      const result = runCalculator(7, '^', 1);
+      expect(result).toBe('7 ^ 1 = 7');
+    });
+
+    test('should raise to negative power', () => {
+      const result = runCalculator(2, '^', -2);
+      expect(result).toBe('2 ^ -2 = 0.25');
+    });
+
+    test('should calculate power of base 3', () => {
+      const result = runCalculator(3, '^', 4);
+      expect(result).toBe('3 ^ 4 = 81');
+    });
+  });
+
+  // Square root tests
+  describe('Square Root Operation', () => {
+    test('should calculate square root of perfect square', () => {
+      const result = runCalculator(16, 'sqrt');
+      expect(result).toBe('sqrt(16) = 4');
+    });
+
+    test('should calculate square root of another perfect square', () => {
+      const result = runCalculator(25, 'sqrt');
+      expect(result).toBe('sqrt(25) = 5');
+    });
+
+    test('should calculate square root of non-perfect square', () => {
+      const result = runCalculator(2, 'sqrt');
+      expect(result).toContain('sqrt(2) = 1.414');
+    });
+
+    test('should calculate square root of one', () => {
+      const result = runCalculator(1, 'sqrt');
+      expect(result).toBe('sqrt(1) = 1');
+    });
+
+    test('should calculate square root of zero', () => {
+      const result = runCalculator(0, 'sqrt');
+      expect(result).toBe('sqrt(0) = 0');
+    });
+
+    test('should reject square root of negative number', () => {
+      const result = runCalculator(-4, 'sqrt');
+      expect(result).toContain('Error: Cannot calculate square root of negative number');
+    });
+
+    test('should calculate square root of decimal', () => {
+      const result = runCalculator(4.84, 'sqrt');
+      expect(result).toContain('sqrt(4.84) =');
+    });
+  });
